@@ -29,7 +29,7 @@ services:
   item-db:
     # mengambil image dari Docker Hub
     image: mongo:3
-    # memasang volume ke /data/db
+    # memasang volume ke target /data/db
     volumes:
       - app-db:/data/db
     # restart service secara otomatis saat service down
