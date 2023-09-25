@@ -1,0 +1,49 @@
+# PENJELASAN
+# - membuat deployment dengan nama karsajobs-backend
+# - karsajobs-backend memiliki label "type:backend" yang akan digunakan sebagai selector pada berkas 'karsajobs-service.yml'
+# - deployment terdiri dari 1 pod dengan 1 replica
+# - di dalam pod terdapat 1 container dengan nama karsajobs-backend-server
+# - image container diambil dari GitHub Packages
+# - Port 8080 diekspos oleh container
+# - Port 8080 juga diekspos kepada host
+# - Terdapat beberapa environment variables, seperti APP_PORT, MONGO_HOST, MONGO_USER, dan MONGO_PASS
+# - Kredensial MONGO_USER dan MONGO_PASS diperoleh dari berkas 'mongo-secret.yml'
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karsajobs-backend
+  labels:
+    app: karsajobs
+    type: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      type: backend
+    template:
+      metadata:
+        labels:
+          app: karsajobs
+          type: backend
+      spec:
+        containers:
+          - name: karsajobs-backend-server
+            image: ghcr.io/dummyheaad/hypr27/karsajobs:latest
+            ports:
+              - containerPort: 8080
+            env:
+              - name: APP_PORT
+                value: '8080'
+              - name: MONGO_HOST
+                value: mongodb
+              - name: MONGO_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: mongodb-secret
+                    key: MONGO_ROOT_USERNAME
+              - name: MONGO_PASS
+                valueFrom:
+                  secretKeyRef:
+                    name: mongodb-secret
+                    key: MONGO_ROOT_PASSWORD

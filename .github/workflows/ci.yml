@@ -1,0 +1,60 @@
+# Mengatur nama workflow menjadi "Continuous Integration
+name: Continuous Integration
+
+# Mengatur trigger agar workflow dijalankan saat adanya proses merge ke branch master
+on:
+  pull_request:
+    branches:
+      - master
+
+# Mendefinisikan jobs yang akan dilakukan oleh workflow
+jobs:
+  # 1. Memeriksa syntax Dockerfile dengan hadolint
+  lint-dockerfile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Docker
+        uses: actions/setup-docker@v2
+
+      - name: Install hadolint
+        run: |
+          docker pull hadolint/hadolint
+
+      - name: Run hadolint
+        run: |
+          docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
+
+  # 2. Melakukan proses build app untuk menghasilkan docker image yang kemudian diunggah ke GitHub Packages
+  build-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Docker
+        uses: actions/setup-docker@v2
+
+      - name: Build Docker Image
+        run: |
+          docker build -t hypr27/karsajobs-ui:latest .
+          docker tag hypr27/karsajobs:latest ghcr.io/dummyheaad/hypr27/karsajobs-ui:latest
+
+      - name: Login to GitHub Packages
+        run: |
+          echo ${{ secrets.GITHUB_PAT  }} | docker login ghcr.io -u dummyheaad --password-stdin
+
+      - name: Push Docker Image to GitHub Packages
+        run: |
+          docker push ghcr.io/dummyheaad/hypr27/karsajobs-ui:latest
+
+# Mengatur workflow dari job yang telah dibuat
+workflows:
+  continuous-integration:
+    jobs:
+      - lint-dockerfile
+      - build-app-karsajobs-ui:
+        requires:
+          - lint-dockerfile

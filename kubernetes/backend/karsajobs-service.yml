@@ -1,0 +1,19 @@
+# PENJELASAN
+# - membuat sebuah service bernama 'karsajobs-backend'
+# - service diberi label 'app:karsajobs'
+# - tipe service yang digunakan adalah NodePort
+# - aplikasi dapat diakses menggunakan <NodeIP>:<NodePort>
+# - selector type:backend digunakan yang merujuk ke berkas "karsajobs-deployment.yml"
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: karsajobs-backend
+  labels:
+    app: karsajobs
+spec:
+  ports:
+    - port: 8080
+  selector:
+    type: backend
+  type: NodePort

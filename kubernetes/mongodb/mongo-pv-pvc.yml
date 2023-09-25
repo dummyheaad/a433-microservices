@@ -1,0 +1,35 @@
+# PENJELASAN
+# 1.) PersitentVolume
+# - membuat sebuah PersitentVolume dengan nama 'mongodb-pv-volume'
+# - memiliki kapasitas 4 GiB (4 Gibibytes)
+# - hanya bisa di-mount oleh satu host / node
+# - data disimpan pada target path '/mnt/data/mongodb' pada host
+#
+# 2.) PersistentVolumeClaim
+# - membuat sebuah PersistentVolumeClaim dengan nama 'mongodb-pv-claim'
+# - berfungsi untuk melakukan claim terhadap PersistentVolume 'mongodb-pv-volume'
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongodb-pv-volume
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 4Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: '/mnt/data/mongodb'
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
