@@ -1,0 +1,79 @@
+# Mengatur nama workflow menjadi "Continuous Integration"
+name: Continuous Integration
+
+# Menjalankan workflow pada saat ada nya pull request ke branch master
+on:
+  pull_request:
+    branches:
+      - master
+
+# Mendefinisikan jobs yang akan dikerjakan oleh workflow
+jobs:
+  # 1. Memeriksa syntax Dockerfile dengan hadolint
+  lint-dockerfile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Docker
+        uses: actions/setup-docker@v2
+
+      - name: Install hadolint
+        run: |
+          docker pull hadolint/hadolint
+
+      - name: Run hadolint
+        run: |
+          docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
+
+  # 2. Menguji coba aplikasi
+  test-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19.3
+
+      - name: Run Tests
+        run: |
+          go test -v -short --count=1 $(go list ./...)
+
+  # 3. Melakukan build aplikasi untuk menghasilkan artifact berupa docker image yang kemudian diunggah ke GitHub Packages
+  build-app-karsajobs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Docker
+        uses: actions/setup-docker@v2
+
+      - name: Build Docker Image
+        run: |
+          docker build -t hypr27/karsajobs:latest .
+          docker tag hypr27/karsajobs:latest ghcr.io/dummyheaad/hypr27/karsajobs:latest
+
+      - name: Login to GitHub Packages
+        run: |
+          echo ${{ secrets.GITHUB_PAT }} | docker login ghcr.io -u dummyheaad --password-stdin
+
+      - name: Push Docker Image to GitHub Packages
+        run: |
+          docker push ghcr.io/dummyheaad/hypr27/karsajobs:latest
+
+# Mendefinisikan urutan pengerjaan job
+workflows:
+  continuous-integration:
+    jobs:
+      - lint-dockerfile
+      - test-app:
+          requires:
+            - lint-dockerfile
+      - build-app-karsajobs
+          requires:
+            - test-app

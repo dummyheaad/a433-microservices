@@ -1,0 +1,18 @@
+# PENJELASAN
+# - membuat sebuah service dengan nama 'karsajobs-ui'
+# - menggunakan service bertipe NodePort
+# - mengekspos port 8000 pada port dengan label 'type:frontend'
+# - aplikasi frontend bisa diakses dengan <NodeIP>:<NodePort>
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: karsajobs-ui
+  labels:
+    app: karsajobs
+  spec:
+    ports:
+      - port: 8000
+    selector:
+      type: frontend
+    type: NodePort

@@ -1,0 +1,31 @@
+# PENJELASAN
+# - membuat sebuah deployment dengan nama 'karsajobs-ui'
+# - deployment terdiri dari 1 pod (1 replica) dengan 1 buat container
+# - container diberi nama 'karsajobs-frontend-app'
+# - container menggunakan image dari GitHub Packages
+# - port 8000 akan diekspos oleh container
+# - port 8000 akan diekspos juga oleh host
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karsajobs-ui
+  labels:
+    apps: karsajobs
+    type: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      type: frontend
+  template:
+    metadata:
+      labels:
+        app: karsajobs
+        type: frontend
+    spec:
+      containers:
+        - name: karsajobs-frontend-app
+          image: ghcr.io/dummyheaad/hypr27/karsajobs-ui:latest
+          ports:
+            - containerPort: 8000

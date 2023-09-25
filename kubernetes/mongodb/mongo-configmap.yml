@@ -1,0 +1,12 @@
+# PENJELASAN
+# - membuat ConfigMap dengan nama 'mongodb-config'
+# - memiliki data dengan key 'mongo.conf' dan value berupa string multiline yang mendefinisikan target path dari storage, yaitu key dbPath dengan value /data/db
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb-config
+data:
+  mongo.conf: |
+    storage:
+      dbPath: /data/db
