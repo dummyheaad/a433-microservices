@@ -1,0 +1,40 @@
+# menggunakan skema versi 3.8 untuk compose file
+version: "3.8"
+
+# mendefinisikan 2 services, yaitu item-app dan item-db
+services:
+  # mendefinisikan service pertama, yaitu item-app
+  item-app:
+    # mengambil image dari GitHub Packages
+    image: ghcr.io/dummyheaad/item-app:v1
+    # melakukan port mapping dari 8080 di container menuju 80 di host
+    ports:
+      - 80:8080
+    # mengatur working directory, yaitu /app
+    working_dir: /app
+    # melakukan bind-mount antara /app dengan path dimana file docker-compose.yml berada
+    volumes:
+      - ./:/app
+    # mengatur beberapa environment variable
+    environment:
+      NODE_ENV: production
+      DB_HOST: item-db
+    # restart service secara otomatis saat service down
+    restart: on-failure
+    # item-app menunggu item-db terbentuk terlebih dahulu
+    depends_on:
+      - item-db
+
+  # mendefinisikan service kedua, yaitu item-db
+  item-db:
+    # mengambil image dari Docker Hub
+    image: mongo:3
+    # memasang volume ke /data/db
+    volumes:
+      - app-db:/data/db
+    # restart service secara otomatis saat service down
+    restart: on-failure
+
+# membuat sebuah volume bernama app-db
+volumes:
+  app-db:
