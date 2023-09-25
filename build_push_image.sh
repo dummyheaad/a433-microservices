@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # membuat docker image dari Dockerfile
 docker build -t item-app:v1 .
 
