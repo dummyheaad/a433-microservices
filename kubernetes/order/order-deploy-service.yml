@@ -1,0 +1,84 @@
+# SERVICE
+# mendefinisikan versi API untuk Service
+apiVersion: v1
+
+# mendefinisikan jenis resource yang digunakan
+kind: Service
+
+# mendefinisikan metadata
+metadata:
+  # mendefinisikan nama service yang akan dibuat
+  name: order-service
+
+# mendefinisikan spesifikasi service
+spec:
+  selector:
+    # menargetkan pod dengan label app:order
+    app: order
+
+  ports:
+    # mendefinisikan port yang akan digunakan oleh service
+    - protocol: TCP
+      # mendefinisikan nama port
+      name: http-order
+
+      # mendefinisikan external port yang digunakan
+      port: 8080
+
+      # target port pada pod
+      targetPort: 8080
+
+---
+
+# DEPLOYMENT
+# mendefinisikan versi API untuk Service
+apiVersion: apps/v1
+
+# mendefinisikan jenis resource yang digunakan
+kind: Deployment
+
+# mendefinisikan metadata
+metadata:
+  # mendefinisikan nama pod yang akan dibuat
+  name: order-deployment
+
+# mendefinisikan spesifikasi pod
+spec:
+  # menetapkan jumlah pod / replika menjadi 1
+  replicas: 1
+
+  # mengatur selector
+  selector:
+    matchLabels:
+      # mendefinisikan label untuk pod
+      app: order
+  
+  # mengatur template
+  template:
+    # mendefinisikan metadata untuk template
+    metadata:
+      labels:
+        app: order
+
+    # mendefinisikan spesifikasi untuk template
+    spec:
+      containers:
+        # mengatur nama container
+        - name: order-container
+        # mengatur source pull untuk image container
+          image: ghcr.io/dummyheaad/order-service:v1
+          ports:
+            # mengatur port yang akan digunakan container
+            - containerPort: 8080
+
+          env:
+            # menyimpan port pada sebuah environment variable
+            - name: PORT
+              
+            # mengatur nomor port yang akan disimpan
+              value: "8080"
+
+            # mengatur variabel untuk menyimpan URL AMQP
+            - name: AMQP_URL
+              # nilai dari AMQP_URL
+              value: "amqp://rabbitmq-service.default.svc.cluster.local:5672"
