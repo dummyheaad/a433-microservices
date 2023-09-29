@@ -1,0 +1,54 @@
+# mendefinisikan versi API untuk VirtualService
+apiVersion: networking.istio.io/v1alpha3
+
+# mendefinisikan jenis resource yang digunakan
+kind: VirtualService
+
+# mendefinisikan metadata
+metadata:
+  # Nama VirtualService yang akan dibuat
+  name: istio-virtualservice
+
+spec:
+  hosts:
+    # Memakai semua host yang tersedia
+    - "*"
+
+  gateways:
+    # Gateway yang digunakan untuk VirtualService
+    - istio-gateway
+
+  http:
+    - match:
+      - uri:
+        # matching uri ke /order
+        exact: /order
+
+      - uri: 
+        # matching uri ke /shipping
+        exact: /shipping
+
+      route:
+        - destination:
+          # melakukan routing ke destination host: order-service
+          host: order-service
+
+          # melakukan routing ke destination port: 8080
+          port:
+            number: 8080
+
+          # mendefinisikan bobot untuk route
+          weight: 100
+
+        - destination:
+          # melakukan routing ke destination host: shiping-service
+          host: shipping-service
+
+          # melakukan routing ke destination port: 8081
+          port:
+            number: 8081
+
+          # mendefinisikan bobot untuk rute
+          weight: 100
+        
+

@@ -1,0 +1,93 @@
+# SERVICE
+# mendefinisikan versi API yang digunakan untuk Service
+apiVersion: v1
+
+# mendefinisikan jenis resource yang digunakan
+kind: Service
+
+# mendefinisikan metadata
+metadata:
+  # mengatur nama dari service yang akan dibuat
+  name: shipping-service
+
+# mendefinisikan spesifikasi dari service
+spec:
+
+  # mengatur selector
+  selector:
+    # mencari pod dengan label app:shipping
+    app: shipping
+
+  ports:
+    # mendefinisikan protokol yang digunakan
+    - protocol: TCP
+      
+    # mendefinisikan nama port
+      name: http-shipping
+
+    # mengatur external port
+      port: 8081
+
+    # mengatur target port pada pod
+      targetPort: 8081
+
+---
+
+# DEPLOYMENT
+# mendefinisikan versi API yang digunakan untuk Service
+apiVersion: apps/v1
+
+# mendefinisikan jenis resource yang dipakai
+kind: Deployment
+
+# mendefinisikan metadata
+metadata:
+  # mengatur nama pod dimana service diluncurkan
+  name: shipping-deployment
+
+# mengatur spesifikasi pod
+spec:
+  # mendefinisikan total pod / replica sebanyak 1
+  replicas: 1
+
+  # mengatur selector
+  selector:
+    matchLabels:
+      # mendefinisikan label sebagai referensi untuk pod
+      app: shipping
+
+  # mengatur template
+  template:
+
+    # mendefinisikan metadata untuk template
+    metadata:
+      labels:
+        # memberikan label untuk pod yang akan dibuat
+        app: shipping
+
+    # mendefinisikan spesifikasi untuk template
+    spec:
+      containers:
+        # mengatur nama container
+        - name: shipping-container
+
+          # mengatur source pull untuk image container
+          image: ghcr.io/dummyheaad/shipping-service:v1
+
+          # mengatur port yang digunakan oleh container
+          ports:
+            - containerPort: 8081
+
+          # mengatur environment variables
+          env:
+            # variable untuk menyimpan nomor port
+            - name: PORT
+
+              # mengatur nomor port yang disimpan
+              value: "8081"
+
+            # variabel untuk menyimpan URL AMQP
+            - name: AMQP_URL
+
+              # mengatur value dari AMQP_URL
+              value: "amqp://rabbitmq-service.default.svc.cluster.local:5672"

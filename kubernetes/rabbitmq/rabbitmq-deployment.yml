@@ -1,0 +1,180 @@
+# PERSISTENT VOLUME
+# mendefinisikan versi API yang digunakan untuk PersistentVolume
+apiVersion: v1
+
+# mendefinisikan jenis resource yang digunakan
+kind: PersistentVolume
+
+# mendefinisikan metadata
+metadata:
+  # mengatur nama dari PersistentVolume yang akan dibuat
+  name: rabbitmq-pv
+
+# mendefinisikan spesifikasi persistent volume
+spec:
+  capacity:
+    # kapasitas sebesar 2 GiB (gibibtye)
+    storage: 2Gi
+
+    accessMode:
+      # mengatur mode akses ke persistent volume
+      - ReadWriteOnce
+
+    # menentukan policy untuk persistent volume
+    persistentVolumeReclaimPolicy: Retain
+
+    # mengatur lokasi penyimpanan persisten secara manual
+    storageClassName: manual
+    
+    hostPath:
+      # mengatur path dari persistent volume pada host
+      path: /data/rabbitmq-pv
+
+---
+
+# PERSISTENT VOLUME CLAIM (PVC)
+# mendefinisikan versi API
+apiVersion: v1
+
+# mendefinisikan jenis resource yang akan digunakan
+kind: PersistentVolumeClaim
+
+# mendefinisikan metadata
+metadata:
+  # mengatur nama PVC
+  name: rabbitmq-pvc
+
+# mengatur spesifikasi PVC
+spec:
+
+  # mengatur mode akses
+  accessMode:
+    - ReadWriteOnce
+
+  resources:
+    requests:
+      # Melakukan request kapasitas sebesar 2 gibibyte
+      storage: 2Gi
+
+  # mengatur lokasi penyimpanan persisten secara manual
+  storageClassName: manual
+
+---
+
+# SERVICE
+# mendefinisikan versi API untuk Service
+apiVersion: v1
+
+# mendefinisikan jenis resource yang akan digunakan
+kind: Service
+
+# mendefinisikan metadata
+metadata:
+  # mengatur nama service
+  name: rabbitmq-service
+
+# mendefinisikan spesifikasi service
+spec:
+  selector:
+    # menarget pod dengan label app:rabbitmq
+    app: rabbitmq
+
+  ports:
+    # mengatur protokol yang digunakan
+    - protocol: TCP
+
+      # mengatur nama port
+      name: tcp-rabbitmq
+
+      # mengatur external port
+      port: 5672
+
+      # mengatur target port pada pod
+      targetPort: 5672
+
+---
+
+# STATEFULSET
+# mendefinisikan versi API yang akan digunakan
+apiVersion: apps/v1
+
+# mendefinisikan jenis resource yang akan digunakan
+kind: StatefulSet
+
+# mendefinisikan metadata untuk StatefulSet
+metadata:
+  # mengatur nama StatefulSet
+  name: rabbitmq-statefulset
+
+# mendefinisikan spesifikasi untuk StatefulSet
+spec:
+
+  # mengatur nama layanan untuk Headless Service
+  serviceName: rabbitmq
+
+  # mengatur jumlah pod / replicas
+  replicas: 1
+
+  # mengatur selector
+  selector:
+    matchLabels:
+      # mencari pod dengan label app:rabbitmq
+      app: rabbitmq
+
+  # mengatur template
+  template:
+
+    # mendefinisikan metadata template
+    metadata:
+      labels:
+        # mengatur label sebagai referensi menuju template ini
+        app: rabbitmq
+
+    # mendefinisikan spesifikasi template
+    spec:
+      # mengatur spesifikasi container
+      containers:
+        # mengatur nama container
+        - name: rabbitmq-container
+
+          # mengatur source pull dari image container
+          image: rabbitmq:3.11-management
+
+          ports:
+            # mengatur port container
+            - containerPort: 5672
+
+              # mengatur nama port yang akan di-expose
+              name: amqp
+
+          # mengatur mounting untuk volume (penyimpanan) container
+          volumeMounts:
+
+            # mendefinisikan nama volume yang akan di-mount
+            - name: data-volume
+              # path (lokasi) dari volume
+              mountPath: /data/rabbitmq
+
+          # mengatur readinessProbe
+          readinessProbe:
+            # mendefinisikan perintah yang akan dijalankan untuk readinessProbe
+            exec:
+              command:
+                - sh
+                - -c
+                - rabbitmq-diagnostics ping
+
+            # mengatur delay
+            initialDelaySeconds: 16
+            periodSeconds: 16
+            
+            # mengatur timeout
+            timeoutSeconds: 8 
+
+      # mengatur volume yang akan digunakan
+      volumes:
+        # mendefinisikan nama volume
+        - name: data-volume
+          persistentVolumeClaim:
+            # nama dari PVC
+            claimName: rabbitmq-pvc

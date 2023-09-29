@@ -1,0 +1,31 @@
+# mendefinisikan versi untuk Kubernetes Gateway API
+apiVersion: networking.istio.io/v1alpha3
+
+# mendefinisikan jenis resource yang digunakan
+kind: Gateway
+
+# mendefinisikan metadata
+metadata:
+  # mendefinisikan nama untuk gateway
+  name: istio-gateway
+    
+# mendefinisikan spesifikasi untuk gateway
+spec:
+  selector:
+
+    # Memilih pod dengan label "istio:ingressgateway"
+    istio: ingressgateway
+  servers:
+    - port:
+      # Nomor port yang dipakai
+      number: 80
+
+      # Nama protokol yang digunakan
+      name: http
+
+      # Jenis protokol yang digunakan
+      protocol: HTTP
+
+      hosts:
+      # Memakai semua host yang tersedia
+      - "*"
